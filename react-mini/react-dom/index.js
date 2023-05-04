@@ -1,7 +1,16 @@
 import { createContainer, updateContainer } from "../react-reconciler";
+import { ConcurrentRoot } from "../react-reconciler/src/ReactRootTags";
 
 export function createRoot(container) {
-  const root = createContainer(container);
+  let isStrictMode = false;
+  let concurrentUpdatesByDefaultOverride = false;
+  const root = createContainer(
+    container,
+    ConcurrentRoot,
+    null,
+    isStrictMode,
+    concurrentUpdatesByDefaultOverride
+  );
 
   return new ReactDOMRoot(root);
 }
@@ -11,7 +20,6 @@ function ReactDOMRoot(internalRoot) {
 }
 
 ReactDOMRoot.prototype.render = function (children) {
-  console.log(children);
   const root = this._internalRoot;
-  updateContainer(children, root);
+  updateContainer(children, root, null, null);
 };

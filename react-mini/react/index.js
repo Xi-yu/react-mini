@@ -43,10 +43,10 @@ const React = {
 function ReactElement(type, key, ref, self, source, owner, props) {
   const element = {
     $$typeof: REACT_ELEMENT_TYPE,
-    type,
-    key,
-    ref,
-    props,
+    type: type,
+    key: key,
+    ref: ref,
+    props: props,
     _owner: owner,
   };
 
