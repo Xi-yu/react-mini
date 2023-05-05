@@ -10,17 +10,18 @@ export function initializeUpdateQueue(fiber) {
     lastBaseUpdate: null,
     shared: {
       pending: null,
+      interleaved: null,
       lanes: NoLanes,
-      hiddenCallbacks: null,
     },
-    callbacks: null,
+    effects: null,
   };
 
   fiber.updateQueue = queue;
 }
 
-export function createUpdate(lane) {
+export function createUpdate(eventTime, lane) {
   const update = {
+    eventTime,
     lane,
     tag: UpdateState,
     payload: null,

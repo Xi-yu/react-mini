@@ -1,13 +1,18 @@
 import { createUpdate, enqueueUpdate } from "./ReactFiberClassUpdateQueue";
 import { createFiberRoot } from "./ReactFiberRoot";
-import { requestUpdateLane } from "./ReactFiberWorkLoop";
+import {
+  requestEventTime,
+  requestUpdateLane,
+  scheduleUpdateOnFiber,
+} from "./ReactFiberWorkLoop";
 
 export function createContainer(
   containerInfo,
   tag,
   hydrationCallbacks,
   isStrictMode,
-  concurrentUpdatesByDefaultOverride
+  concurrentUpdatesByDefaultOverride,
+  identifierPrefix
 ) {
   const hydrate = false;
   const initialChildren = null;
@@ -18,20 +23,24 @@ export function createContainer(
     initialChildren,
     hydrationCallbacks,
     isStrictMode,
-    concurrentUpdatesByDefaultOverride
+    concurrentUpdatesByDefaultOverride,
+    identifierPrefix
   );
 }
 
 export function updateContainer(element, container, parentComponent, callback) {
-  console.log(container);
   const current = container.current;
+  const eventTime = requestEventTime();
   const lane = requestUpdateLane(current);
-  const update = createUpdate(lane);
+  const update = createUpdate(eventTime, lane);
   update.payload = { element };
-  update.callback = callback === undefined ? null : callback;
+  callback = callback === undefined ? null : callback;
+  if (callback !== null) {
+    update.callback = callback;
+  }
   const root = enqueueUpdate(current, update, lane);
   if (root !== null) {
-    scheduleUpdateOnFiber(root, current, lane);
+    scheduleUpdateOnFiber(root, current, lane, eventTime);
   }
   return lane;
 }
