@@ -110,7 +110,7 @@ function performConcurrentWorkOnRoot(root, didTimeout) {
   // concurrent模式都是走这个函数, legacy模式走renderRootSync函数
   renderRootConcurrent(root, lanes);
   // 检查是否有新的调度任务
-  ensureRootIsScheduled(root, now());
+  // ensureRootIsScheduled(root, now());
 }
 
 function renderRootConcurrent(root, lanes) {
@@ -148,4 +148,8 @@ function prepareFreshStack(root, lanes) {
   return rootWorkInProgress;
 }
 
-function performUnitOfWork(unitOfWork) {}
+function performUnitOfWork(unitOfWork) {
+  // todo - Fiber树构造
+  console.log(unitOfWork);
+  workInProgress = null;
+}
