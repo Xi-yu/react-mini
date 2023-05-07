@@ -74,6 +74,16 @@ export function createWorkInProgress(current, pendingProps) {
   } else {
     // todo: 对比更新
   }
+  // todo: workInProgress.flags = current.flags;
+  workInProgress.lanes = current.lanes;
+  workInProgress.childLanes = current.childLanes;
+  workInProgress.child = current.child;
+  workInProgress.memoizedProps = current.memoizedProps;
+  workInProgress.memoizedState = current.memoizedState;
+  workInProgress.updateQueue = current.updateQueue;
+  workInProgress.sibling = current.sibling;
+  workInProgress.index = current.index;
+  workInProgress.ref = current.ref;
 
   return workInProgress;
 }

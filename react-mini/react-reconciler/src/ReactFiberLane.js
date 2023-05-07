@@ -135,3 +135,11 @@ export function getHighestPriorityLane(lanes) {
 export function includesNonIdleWork(lanes) {
   return (lanes & NonIdleLanes) !== NoLanes;
 }
+
+export function includesSomeLane(a, b) {
+  return (a & b) !== NoLanes;
+}
+
+export function isSubsetOfLanes(set, subset) {
+  return (set & subset) === subset;
+}

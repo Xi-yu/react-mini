@@ -26,17 +26,20 @@ import {
   markRootUpdated,
 } from "./ReactFiberLane";
 import { ConcurrentMode, NoMode } from "./ReactTypeOfMode";
+import { beginWork } from "./ReactFiberBeginWork";
+import { finishQueueingConcurrentUpdates } from "./ReactFiberConcurrentUpdates";
 
 export const NoContext = 0b000;
 
 let currentEventTime = NoTimestamp;
-// 正在构造的FiberRoot
+// FiberRoot
 let workInProgressRoot = null;
 // 正在构造的Fiber
 let workInProgress = null;
 let workInProgressRootRenderLanes = NoLanes;
 // 渲染阶段上下文
 let executionContext = NoContext;
+export let subtreeRenderLanes = NoLanes;
 
 export function requestUpdateLane(fiber) {
   const mode = fiber.mode;
@@ -125,12 +128,6 @@ function renderRootConcurrent(root, lanes) {
   } while (true);
 }
 
-function workLoopConcurrent() {
-  while (workInProgress !== null && !shouldYieldToHost()) {
-    performUnitOfWork(workInProgress);
-  }
-}
-
 // 刷新帧栈
 function prepareFreshStack(root, lanes) {
   root.finishedWork = null;
@@ -143,13 +140,22 @@ function prepareFreshStack(root, lanes) {
   workInProgressRoot = root;
   const rootWorkInProgress = createWorkInProgress(root.current, null);
   workInProgress = rootWorkInProgress;
-  workInProgressRootRenderLanes = lanes;
+  workInProgressRootRenderLanes = subtreeRenderLanes = lanes;
+
+  finishQueueingConcurrentUpdates();
 
   return rootWorkInProgress;
 }
 
+function workLoopConcurrent() {
+  while (workInProgress !== null && !shouldYieldToHost()) {
+    performUnitOfWork(workInProgress);
+  }
+}
+
 function performUnitOfWork(unitOfWork) {
   // todo - Fiber树构造
-  console.log(unitOfWork);
+  const current = unitOfWork.alternate;
+  let next = beginWork(current, unitOfWork, subtreeRenderLanes);
   workInProgress = null;
 }
