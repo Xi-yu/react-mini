@@ -1,3 +1,4 @@
+import { reconcileChildFibers } from "./ReactChildFiber";
 import {
   cloneUpdateQueue,
   processUpdateQueue,
@@ -80,5 +81,11 @@ export function reconcileChildren(
 ) {
   if (current === null) {
   } else {
+    workInProgress.child = reconcileChildFibers(
+      workInProgress,
+      current.child,
+      nextChildren,
+      renderLanes
+    );
   }
 }

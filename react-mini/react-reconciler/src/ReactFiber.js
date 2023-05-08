@@ -2,7 +2,11 @@ import { NoFlags } from "./ReactFiberFlags";
 import { NoLanes } from "./ReactFiberLane";
 import { ConcurrentRoot } from "./ReactRootTags";
 import { ConcurrentMode } from "./ReactTypeOfMode";
-import { HostRoot } from "./ReactWorkTags";
+import {
+  HostComponent,
+  HostRoot,
+  IndeterminateComponent,
+} from "./ReactWorkTags";
 
 export function createHostRootFiber(
   tag,
@@ -86,4 +90,44 @@ export function createWorkInProgress(current, pendingProps) {
   workInProgress.ref = current.ref;
 
   return workInProgress;
+}
+
+export function createFiberFromElement(element, mode, lanes) {
+  let owner = null;
+  const type = element.type;
+  const key = element.key;
+  const pendingProps = element.props;
+  const fiber = createFiberFromTypeAndProps(
+    type,
+    key,
+    pendingProps,
+    owner,
+    mode,
+    lanes
+  );
+  return fiber;
+}
+
+export function createFiberFromTypeAndProps(
+  type,
+  key,
+  pendingProps,
+  owner,
+  mode,
+  lanes
+) {
+  let fiberTag = IndeterminateComponent;
+  let resolvedType = type;
+  if (typeof type === "function") {
+    // todo
+  } else if (typeof type === "string") {
+    fiberTag = HostComponent;
+  } else {
+    // todo
+  }
+  const fiber = createFiber(fiberTag, pendingProps, key, mode);
+  fiber.elementType = type;
+  fiber.type = resolvedType;
+  fiber.lanes = lanes;
+  return fiber;
 }

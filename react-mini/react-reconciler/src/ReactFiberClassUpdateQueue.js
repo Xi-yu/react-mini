@@ -1,5 +1,6 @@
 import { enqueueConcurrentClassUpdate } from "./ReactFiberConcurrentUpdates";
 import { NoLane, NoLanes, isSubsetOfLanes, mergeLanes } from "./ReactFiberLane";
+import { markSkippedUpdateLanes } from "./ReactFiberWorkLoop";
 
 export const UpdateState = 0;
 
@@ -57,6 +58,7 @@ export function cloneUpdateQueue(current, workInProgress) {
   }
 }
 
+// 遍历updateQueue.shared.pending, 提取有足够优先级的update对象, 计算出最终的状态 workInProgress.memoizedState
 export function processUpdateQueue(
   workInProgress,
   nextProps,
@@ -164,6 +166,15 @@ export function processUpdateQueue(
     queue.baseState = newBaseState;
     queue.firstBaseUpdate = newFirstBaseUpdate;
     queue.lastBaseUpdate = newLastBaseUpdate;
+    const lastInterleaved = queue.shared.interleaved;
+    if (lastInterleaved !== null) {
+      // todo
+    } else if (firstBaseUpdate === null) {
+      // todo
+    }
+    markSkippedUpdateLanes(newLanes);
+    workInProgress.lanes = newLanes;
+    workInProgress.memoizedState = newState;
   }
 }
 

@@ -24,6 +24,7 @@ import {
   getHighestPriorityLane,
   getNextLanes,
   markRootUpdated,
+  mergeLanes,
 } from "./ReactFiberLane";
 import { ConcurrentMode, NoMode } from "./ReactTypeOfMode";
 import { beginWork } from "./ReactFiberBeginWork";
@@ -37,6 +38,7 @@ let workInProgressRoot = null;
 // 正在构造的Fiber
 let workInProgress = null;
 let workInProgressRootRenderLanes = NoLanes;
+let workInProgressRootSkippedLanes = NoLanes;
 // 渲染阶段上下文
 let executionContext = NoContext;
 export let subtreeRenderLanes = NoLanes;
@@ -158,4 +160,11 @@ function performUnitOfWork(unitOfWork) {
   const current = unitOfWork.alternate;
   let next = beginWork(current, unitOfWork, subtreeRenderLanes);
   workInProgress = null;
+}
+
+export function markSkippedUpdateLanes(lane) {
+  workInProgressRootSkippedLanes = mergeLanes(
+    lane,
+    workInProgressRootSkippedLanes
+  );
 }
