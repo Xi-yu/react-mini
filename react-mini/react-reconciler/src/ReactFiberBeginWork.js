@@ -11,7 +11,7 @@ let didReceiveUpdate = false;
 
 export function beginWork(current, workInProgress, renderLanes) {
   if (current !== null) {
-    // 对比更新
+    // 对比更新或者根Fiber节点
     const oldProps = current.memoizedProps;
     const newProps = workInProgress.pendingProps;
     if (oldProps !== newProps) {

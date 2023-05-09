@@ -1,8 +1,14 @@
 import { REACT_ELEMENT_TYPE, REACT_FRAGMENT_TYPE } from "../../shared";
 import { createFiberFromElement } from "./ReactFiber";
+import { Placement } from "./ReactFiberFlags";
 
 function ChildReconciler(shouldTrackSideEffects) {
-  function placeSingleChild() {}
+  function placeSingleChild(newFiber) {
+    if (shouldTrackSideEffects && newFiber.alternate === null) {
+      newFiber.flags |= Placement;
+    }
+    return newFiber;
+  }
 
   function reconcileSingleElement(
     returnFiber,
@@ -10,9 +16,6 @@ function ChildReconciler(shouldTrackSideEffects) {
     element,
     lanes
   ) {
-    console.log(element);
-    console.log(returnFiber);
-    console.log(lanes);
     const key = element.key;
     let child = currentFirstChild;
     while (child !== null) {
@@ -23,6 +26,9 @@ function ChildReconciler(shouldTrackSideEffects) {
       // todo
     } else {
       const created = createFiberFromElement(element, returnFiber.mode, lanes);
+      created.ref = coerceRef(returnFiber, currentFirstChild, element);
+      created.return = returnFiber;
+      return created;
     }
   }
 
@@ -59,3 +65,15 @@ function ChildReconciler(shouldTrackSideEffects) {
 }
 
 export const reconcileChildFibers = ChildReconciler(true);
+
+function coerceRef(returnFiber, current, element) {
+  const mixedRef = element.ref;
+  if (
+    mixedRef !== null &&
+    typeof mixedRef !== "function" &&
+    typeof mixedRef !== "object"
+  ) {
+    // todo
+  }
+  return mixedRef;
+}

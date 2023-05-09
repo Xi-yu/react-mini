@@ -159,6 +159,12 @@ function performUnitOfWork(unitOfWork) {
   // todo - Fiber树构造
   const current = unitOfWork.alternate;
   let next = beginWork(current, unitOfWork, subtreeRenderLanes);
+  unitOfWork.memoizedProps = unitOfWork.pendingProps;
+  if (next === null) {
+    // todo
+  } else {
+    // workInProgress = next;
+  }
   workInProgress = null;
 }
 
