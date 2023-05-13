@@ -29,7 +29,9 @@ export function createContainer(
 }
 
 export function updateContainer(element, container, parentComponent, callback) {
-  const current = container.current;
+  // element：ReactElement
+  // container：FiberRoot
+  const current = container.current; // HostRootFiber
   const eventTime = requestEventTime();
   const lane = requestUpdateLane(current);
   const update = createUpdate(eventTime, lane);

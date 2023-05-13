@@ -21,6 +21,7 @@ import {
   NoLane,
   NoLanes,
   NoTimestamp,
+  SyncLane,
   getHighestPriorityLane,
   getNextLanes,
   markRootUpdated,
@@ -58,7 +59,7 @@ export function requestUpdateLane(fiber) {
 }
 
 export function scheduleUpdateOnFiber(root, fiber, lane, eventTime) {
-  markRootUpdated(root, lane);
+  markRootUpdated(root, lane, eventTime);
   ensureRootIsScheduled(root, eventTime);
 }
 
@@ -68,6 +69,10 @@ function ensureRootIsScheduled(root, currentTime) {
     root === workInProgressRoot ? workInProgressRootRenderLanes : NoLanes
   );
   const newCallbackPriority = getHighestPriorityLane(nextLanes);
+  const existingCallbackNode = root.callbackNode;
+  if (existingCallbackNode !== null) {
+    // todo
+  }
   // 注册一个调度任务
   let newCallbackNode;
   let schedulerPriorityLevel;
@@ -121,7 +126,7 @@ function performConcurrentWorkOnRoot(root, didTimeout) {
 function renderRootConcurrent(root, lanes) {
   if (workInProgressRoot !== root || workInProgressRootRenderLanes !== lanes) {
     // 如果是初次渲染, workInProgressRoot=null
-    // todo: workInProgressRootRenderLanes是干嘛的?
+    // todo: workInProgressRootRenderLanes 是干嘛的?
     prepareFreshStack(root, lanes);
   }
   do {
@@ -142,8 +147,13 @@ function prepareFreshStack(root, lanes) {
   workInProgressRoot = root;
   const rootWorkInProgress = createWorkInProgress(root.current, null);
   workInProgress = rootWorkInProgress;
+  // root.current.alternate === workInProgress
+  // workInProgress.alternate === root.current
+
   workInProgressRootRenderLanes = subtreeRenderLanes = lanes;
 
+  // 双缓冲技术: workInProgress.updateQueue === root.current.updateQueue
+  // 将 updateQueue.shared.interleaved 接到 updateQueue.shared.pending
   finishQueueingConcurrentUpdates();
 
   return rootWorkInProgress;
@@ -156,8 +166,8 @@ function workLoopConcurrent() {
 }
 
 function performUnitOfWork(unitOfWork) {
-  // todo - Fiber树构造
-  const current = unitOfWork.alternate;
+  // unitOfWork - 正在构造的Fiber节点
+  const current = unitOfWork.alternate; // 已经存在的Fiber节点
   let next = beginWork(current, unitOfWork, subtreeRenderLanes);
   unitOfWork.memoizedProps = unitOfWork.pendingProps;
   if (next === null) {

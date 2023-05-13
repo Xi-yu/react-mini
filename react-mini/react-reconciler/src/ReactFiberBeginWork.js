@@ -10,18 +10,36 @@ import { HostRoot } from "./ReactWorkTags";
 let didReceiveUpdate = false;
 
 export function beginWork(current, workInProgress, renderLanes) {
+  // current - 已经存在的Fiber节点
+  // workInProgress - 正在构造的Fiber节点
   if (current !== null) {
-    // 对比更新或者根Fiber节点
+    // 对比更新时或者根Fiber节点时
     const oldProps = current.memoizedProps;
     const newProps = workInProgress.pendingProps;
     if (oldProps !== newProps) {
       didReceiveUpdate = true;
     } else {
+      // true
+      const hasScheduledUpdateOrContext = checkScheduledUpdateOrContext(
+        current,
+        renderLanes
+      );
+      if (
+        !hasScheduledUpdateOrContext &&
+        (workInProgress.flags & DidCapture) === NoFlags
+      ) {
+        didReceiveUpdate = false;
+        // todo
+        return attemptEarlyBailoutIfNoScheduledUpdate(
+          current,
+          workInProgress,
+          renderLanes
+        );
+      }
       didReceiveUpdate = false;
-      // todo: return attemptEarlyBailoutIfNoScheduledUpdate
     }
   } else {
-    // 初次渲染
+    // 非根Fiber节点初次渲染时
     didReceiveUpdate = false;
   }
   // 清空正在构造的Fiber.lanes
@@ -44,13 +62,12 @@ function pushHostRootContext(workInProgress) {
 }
 
 function updateHostRoot(current, workInProgress, renderLanes) {
-  pushHostRootContext(workInProgress);
+  // pushHostRootContext(workInProgress);
   const nextProps = workInProgress.pendingProps;
   const prevState = workInProgress.memoizedState;
   const prevChildren = prevState.element;
   cloneUpdateQueue(current, workInProgress);
-  processUpdateQueue(workInProgress, nextProps, null, renderLanes);
-  // processUpdateQueue函数可能会改变workInProgress.memoizedState
+  processUpdateQueue(workInProgress, nextProps, null, renderLanes); // 将 workInProgress.updateQueue.shared.pending.next,payload.element 赋值给 workInProgress.memoizedState.element
   const nextState = workInProgress.memoizedState;
   const root = workInProgress.stateNode;
   const nextChildren = nextState.element;
@@ -80,6 +97,7 @@ export function reconcileChildren(
   renderLanes
 ) {
   if (current === null) {
+    // todo - 非根Fiber节点初次渲染
   } else {
     workInProgress.child = reconcileChildFibers(
       workInProgress,
@@ -88,4 +106,18 @@ export function reconcileChildren(
       renderLanes
     );
   }
+}
+
+function checkScheduledUpdateOrContext(current, renderLanes) {
+  const updateLanes = current.lanes;
+  if (includesSomeLane(updateLanes, renderLanes)) {
+    return true;
+  }
+  if (enableLazyContextPropagation) {
+    const dependencies = current.dependencies;
+    if (dependencies !== null && checkIfContextChanged(dependencies)) {
+      return true;
+    }
+  }
+  return false;
 }

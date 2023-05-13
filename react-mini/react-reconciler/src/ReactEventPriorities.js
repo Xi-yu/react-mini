@@ -29,6 +29,7 @@ export function lanesToEventPriority(lanes) {
   return IdleEventPriority;
 }
 
+// a比b优先级更高
 export function isHigherEventPriority(a, b) {
   return a !== 0 && a < b;
 }

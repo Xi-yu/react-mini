@@ -36,6 +36,7 @@ export function createUpdate(eventTime, lane) {
 export function enqueueUpdate(fiber, update, lane) {
   const updateQueue = fiber.updateQueue;
   if (updateQueue === null) {
+    // 只有在Fiber已经被卸载时进入
     return null;
   }
   const sharedQueue = updateQueue.shared;
@@ -43,6 +44,11 @@ export function enqueueUpdate(fiber, update, lane) {
 }
 
 // 浅拷贝
+// current.updateQueue.baseState === workInProgress.updateQueue.baseState
+// current.updateQueue.firstBaseUpdate === workInProgress.updateQueue.firstBaseUpdate
+// current.updateQueue.lastBaseUpdate === workInProgress.updateQueue.lastBaseUpdate
+// current.updateQueue.shared === workInProgress.updateQueue.shared
+// current.updateQueue.effects === workInProgress.updateQueue.effects
 export function cloneUpdateQueue(current, workInProgress) {
   const queue = workInProgress.updateQueue;
   const currentQueue = current.updateQueue;
@@ -71,8 +77,8 @@ export function processUpdateQueue(
   let pendingQueue = queue.shared.pending;
   if (pendingQueue !== null) {
     queue.shared.pending = null;
-    const lastPendingUpdate = pendingQueue;
-    const firstPendingUpdate = lastPendingUpdate.next;
+    const lastPendingUpdate = pendingQueue; // workInProgress.updateQueue.shared.pending
+    const firstPendingUpdate = lastPendingUpdate.next; // workInProgress.updateQueue.shared.pending.next
     // 将环形链表从last和first之间断开
     lastPendingUpdate.next = null;
     // 断开后接到lastBaseUpdate的后面
@@ -98,7 +104,7 @@ export function processUpdateQueue(
     }
   }
   if (firstBaseUpdate !== null) {
-    let newState = queue.baseState;
+    let newState = queue.baseState; // workInProgress.updateQueue.baseState
     let newLanes = NoLanes;
     let newBaseState = null;
     let newFirstBaseUpdate = null;
@@ -108,6 +114,7 @@ export function processUpdateQueue(
       const updateLane = update.lane;
       const updateEventTime = update.eventTime;
       if (!isSubsetOfLanes(renderLanes, updateLane)) {
+        // todo
         // update优先级不足, 跳过
         const clone = {
           eventTime: updateEventTime,
@@ -126,6 +133,7 @@ export function processUpdateQueue(
         newLanes = mergeLanes(newLanes, updateLane);
       } else {
         if (newLastBaseUpdate !== null) {
+          // todo
           const clone = {
             eventTime: updateEventTime,
             lane: NoLane,
@@ -136,13 +144,15 @@ export function processUpdateQueue(
           };
           newLastBaseUpdate = newLastBaseUpdate.next = clone;
         }
+        // 把 workInProgress.updateQueue.shared.pending.next.payload 和 workInProgress.updateQueue.baseState 合并
+        // newState 就是 workInProgress.updateQueue.baseState.element = workInProgress.updateQueue.shared.pending.next.payload.element 赋值后的浅拷贝
         newState = getStateFromUpdate(
           workInProgress,
-          queue,
-          update,
-          newState,
-          nextProps,
-          instance
+          queue, // workInProgress.updateQueue
+          update, // workInProgress.updateQueue.shared.pending.next
+          newState, // workInProgress.updateQueue.baseState
+          nextProps, // workInProgress.pendingProps
+          instance // null
         );
         const callback = update.callback;
         if (callback !== null && update.lane !== NoLane) {
@@ -182,7 +192,7 @@ function getStateFromUpdate(
   workInProgress,
   queue,
   update,
-  prevState,
+  prevState, // workInProgress.updateQueue.baseState
   nextProps,
   instance
 ) {
@@ -193,7 +203,7 @@ function getStateFromUpdate(
       if (typeof payload === "function") {
         // todo
       } else {
-        partialState = payload;
+        partialState = payload; // workInProgress.updateQueue.shared.pending.next.payload
       }
       if (partialState === null || partialState === undefined) {
         return prevState;

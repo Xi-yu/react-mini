@@ -83,6 +83,7 @@ export function shouldYieldToHost() {
   const timeElapsed = getCurrentTime() - startTime;
   if (timeElapsed < frameInterval) {
     // 如果上一个task执行时间小于5ms, 不让出主线程
+    console.log("shouldYieldToHost=false");
     return false;
   }
   if (false) {
@@ -90,6 +91,7 @@ export function shouldYieldToHost() {
     // 所以这里的逻辑暂时用不上
     return navigator.scheduling.isInputPending();
   }
+  console.log("shouldYieldToHost=true");
   return true;
 }
 

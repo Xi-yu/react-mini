@@ -3,6 +3,7 @@ import {
   createContainer,
   updateContainer,
 } from "../../react-reconciler";
+import { markContainerAsRoot } from "./ReactDOMComponentTree";
 
 export function createRoot(container, options) {
   let isStrictMode = false;
@@ -17,7 +18,7 @@ export function createRoot(container, options) {
     identifierPrefix
   );
 
-  // markContainerAsRoot(root.current, container);
+  markContainerAsRoot(root.current, container);
 
   return new ReactDOMRoot(root);
 }

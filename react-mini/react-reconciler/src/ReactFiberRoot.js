@@ -1,7 +1,7 @@
 import { createHostRootFiber } from "./ReactFiber";
 import { initializeUpdateQueue } from "./ReactFiberClassUpdateQueue";
 import { noTimeout } from "./ReactDOMHostConfig";
-import { NoLane, NoLanes } from "./ReactFiberLane";
+import { NoLane, NoLanes, NoTimestamp, createLaneMap } from "./ReactFiberLane";
 
 export function createFiberRoot(
   containerInfo,
@@ -52,6 +52,8 @@ function FiberRootNode(
   this.pendingContext = null;
   this.callbackNode = null;
   this.callbackPriority = NoLane;
+  this.eventTimes = createLaneMap(NoLanes);
+  this.expirationTimes = createLaneMap(NoTimestamp);
 
   this.pendingLanes = NoLanes;
   this.suspendedLanes = NoLanes;

@@ -40,12 +40,21 @@ export const OffscreenLane = 0b1000000000000000000000000000000;
 
 const NonIdleLanes = 0b0001111111111111111111111111111;
 
+export const TotalLanes = 31;
+
 export function mergeLanes(a, b) {
   return a | b;
 }
 
-export function markRootUpdated(root, updateLane) {
+export function markRootUpdated(root, updateLane, eventTime) {
   root.pendingLanes |= updateLane;
+  if (updateLane !== IdleLane) {
+    root.suspendedLanes = NoLanes;
+    root.pingedLanes = NoLanes;
+  }
+  const eventTimes = root.eventTimes;
+  const index = laneToIndex(updateLane);
+  eventTimes[index] = eventTime;
 }
 
 export const NoTimestamp = -1;
@@ -59,9 +68,9 @@ export function getNextLanes(root, wipLanes) {
   let nextLanes = NoLanes;
   const suspendedLanes = root.suspendedLanes;
   const pingedLanes = root.pingedLanes;
-  const nonIdlePendingLanes = pendingLanes & NonIdleLanes;
+  const nonIdlePendingLanes = pendingLanes & NonIdleLanes; // 相当于nonIdlePendingLanes = pendingLanes
   if (nonIdlePendingLanes !== NoLanes) {
-    const nonIdleUnblockedLanes = nonIdlePendingLanes & ~suspendedLanes;
+    const nonIdleUnblockedLanes = nonIdlePendingLanes & ~suspendedLanes; // 从nonIdlePendingLanes中删除suspendedLanes
     if (nonIdleUnblockedLanes !== NoLanes) {
       nextLanes = getHighestPriorityLanes(nonIdleUnblockedLanes);
     } else {
@@ -129,9 +138,12 @@ function getHighestPriorityLanes(lanes) {
 
 // 分离出最高优先级(返回二进制最右边的1)
 export function getHighestPriorityLane(lanes) {
+  // 10010 -> 00010
+  // 10000 -> 10000
   return lanes & -lanes;
 }
 
+// lanes不是NoLanes，并且不比NonIdleLanes大
 export function includesNonIdleWork(lanes) {
   return (lanes & NonIdleLanes) !== NoLanes;
 }
@@ -142,4 +154,22 @@ export function includesSomeLane(a, b) {
 
 export function isSubsetOfLanes(set, subset) {
   return (set & subset) === subset;
+}
+
+export function createLaneMap(initial) {
+  const laneMap = [];
+  for (let i = 0; i < TotalLanes; i++) {
+    laneMap.push(initial);
+  }
+  return laneMap;
+}
+
+function laneToIndex(lane) {
+  return pickArbitraryLaneIndex(lane);
+}
+
+// lanes二进制表示最左边第一个1的下标，最右边一位的下标为0
+// 比如：如果lanes为16，二进制表示为10000，返回4
+function pickArbitraryLaneIndex(lanes) {
+  return 31 - Math.clz32(lanes);
 }

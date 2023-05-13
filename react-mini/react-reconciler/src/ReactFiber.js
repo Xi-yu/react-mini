@@ -66,7 +66,7 @@ export function createWorkInProgress(current, pendingProps) {
     // 初次渲染
     workInProgress = createFiber(
       current.tag,
-      current.pendingProps,
+      pendingProps,
       current.key,
       current.mode
     );
@@ -93,6 +93,7 @@ export function createWorkInProgress(current, pendingProps) {
 }
 
 export function createFiberFromElement(element, mode, lanes) {
+  debugger;
   let owner = null;
   const type = element.type;
   const key = element.key;
