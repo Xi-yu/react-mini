@@ -1,11 +1,12 @@
-import { reconcileChildFibers } from "./ReactChildFiber";
+import { mountChildFibers, reconcileChildFibers } from "./ReactChildFiber";
+import { shouldSetTextContent } from "./ReactDOMHostConfig";
 import {
   cloneUpdateQueue,
   processUpdateQueue,
 } from "./ReactFiberClassUpdateQueue";
 import { pushHostContainer } from "./ReactFiberHostContext";
 import { NoLanes, includesSomeLane } from "./ReactFiberLane";
-import { HostRoot } from "./ReactWorkTags";
+import { HostComponent, HostRoot } from "./ReactWorkTags";
 
 let didReceiveUpdate = false;
 
@@ -47,6 +48,8 @@ export function beginWork(current, workInProgress, renderLanes) {
   switch (workInProgress.tag) {
     case HostRoot:
       return updateHostRoot(current, workInProgress, renderLanes);
+    case HostComponent:
+      return updateHostComponent(current, workInProgress, renderLanes);
   }
 }
 
@@ -80,6 +83,24 @@ function updateHostRoot(current, workInProgress, renderLanes) {
   return workInProgress.child;
 }
 
+function updateHostComponent(current, workInProgress, renderLanes) {
+  const type = workInProgress.type;
+  const nextProps = workInProgress.pendingProps;
+  const prevProps = current !== null ? current.memoizedProps : null;
+  let nextChildren = nextProps.children;
+  const isDirectTextChild = shouldSetTextContent(type, nextProps);
+  if (isDirectTextChild) {
+    // 如果nextProps.children是文本节点
+    nextChildren = null;
+  } else if (prevProps !== null && shouldSetTextContent(type, prevProps)) {
+    // 如果prevProps.children是文本节点
+    workInProgress.flags |= ContentReset;
+  }
+  markRef(current, workInProgress);
+  reconcileChildren(current, workInProgress, nextChildren, renderLanes);
+  return workInProgress.child;
+}
+
 function bailoutOnAlreadyFinishedWork(current, workInProgress, renderLanes) {
   if (current !== null) {
     workInProgress.dependencies = current.dependencies;
@@ -97,7 +118,13 @@ export function reconcileChildren(
   renderLanes
 ) {
   if (current === null) {
-    // todo - 非根Fiber节点初次渲染
+    // 非根Fiber节点初次渲染
+    workInProgress.child = mountChildFibers(
+      workInProgress,
+      null,
+      nextChildren,
+      renderLanes
+    );
   } else {
     workInProgress.child = reconcileChildFibers(
       workInProgress,
@@ -120,4 +147,13 @@ function checkScheduledUpdateOrContext(current, renderLanes) {
     }
   }
   return false;
+}
+
+function markRef(current, workInProgress) {
+  const ref = workInProgress.ref;
+  if (
+    (current === null && ref !== null) ||
+    (current !== null && current.ref !== ref)
+  ) {
+  }
 }

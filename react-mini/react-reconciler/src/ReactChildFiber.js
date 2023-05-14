@@ -3,6 +3,13 @@ import { createFiberFromElement } from "./ReactFiber";
 import { Placement } from "./ReactFiberFlags";
 
 function ChildReconciler(shouldTrackSideEffects) {
+  function deleteRemainingChildren(returnFiber, currentFirstChild) {
+    if (!shouldTrackSideEffects) {
+      return null;
+    }
+    // todo
+  }
+
   function placeSingleChild(newFiber) {
     if (shouldTrackSideEffects && newFiber.alternate === null) {
       newFiber.flags |= Placement;
@@ -59,12 +66,14 @@ function ChildReconciler(shouldTrackSideEffects) {
           );
       }
     }
+    return deleteRemainingChildren(returnFiber, currentFirstChild);
   }
 
   return reconcileChildFibers;
 }
 
 export const reconcileChildFibers = ChildReconciler(true);
+export const mountChildFibers = ChildReconciler(false);
 
 function coerceRef(returnFiber, current, element) {
   const mixedRef = element.ref;

@@ -160,7 +160,9 @@ function prepareFreshStack(root, lanes) {
 }
 
 function workLoopConcurrent() {
-  while (workInProgress !== null && !shouldYieldToHost()) {
+  // todo：还没有实现可中端渲染，所以先不判断shouldYieldToHost
+  // while (workInProgress !== null && !shouldYieldToHost()) {
+  while (workInProgress !== null) {
     performUnitOfWork(workInProgress);
   }
 }
@@ -171,11 +173,14 @@ function performUnitOfWork(unitOfWork) {
   let next = beginWork(current, unitOfWork, subtreeRenderLanes);
   unitOfWork.memoizedProps = unitOfWork.pendingProps;
   if (next === null) {
-    // todo
+    completeUnitOfWork(unitOfWork);
   } else {
-    // workInProgress = next;
+    workInProgress = next;
   }
-  workInProgress = null;
+}
+
+function completeUnitOfWork(unitOfWork) {
+  // todo
 }
 
 export function markSkippedUpdateLanes(lane) {
