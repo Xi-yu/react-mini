@@ -30,6 +30,8 @@ import {
 import { ConcurrentMode, NoMode } from "./ReactTypeOfMode";
 import { beginWork } from "./ReactFiberBeginWork";
 import { finishQueueingConcurrentUpdates } from "./ReactFiberConcurrentUpdates";
+import { Incomplete, NoFlags } from "./ReactFiberFlags";
+import { completeWork } from "./ReactFiberCompleteWork";
 
 export const NoContext = 0b000;
 
@@ -180,7 +182,27 @@ function performUnitOfWork(unitOfWork) {
 }
 
 function completeUnitOfWork(unitOfWork) {
-  // todo
+  let completedWork = unitOfWork;
+  do {
+    const current = completedWork.alternate;
+    const returnFiber = completedWork.return;
+    if ((completedWork.flags & Incomplete) === NoFlags) {
+      const next = completeWork(current, completedWork, subtreeRenderLanes);
+      if (next !== null) {
+        workInProgress = next;
+        return;
+      }
+    } else {
+      // todo
+    }
+    const siblingFiber = completedWork.sibling;
+    if (siblingFiber !== null) {
+      workInProgress = siblingFiber;
+      return;
+    }
+    completedWork = returnFiber;
+    workInProgress = completedWork;
+  } while (completedWork !== null);
 }
 
 export function markSkippedUpdateLanes(lane) {
