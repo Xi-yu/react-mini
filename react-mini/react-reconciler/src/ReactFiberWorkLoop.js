@@ -16,7 +16,7 @@ import {
   lanesToEventPriority,
 } from "./ReactEventPriorities";
 import { createWorkInProgress } from "./ReactFiber";
-import { getCurrentEventPriority } from "./ReactDOMHostConfig";
+import { getCurrentEventPriority } from "../../react-dom/src/ReactDOMHostConfig";
 import {
   NoLane,
   NoLanes,

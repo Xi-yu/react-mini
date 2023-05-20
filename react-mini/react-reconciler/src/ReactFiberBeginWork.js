@@ -1,5 +1,5 @@
 import { mountChildFibers, reconcileChildFibers } from "./ReactChildFiber";
-import { shouldSetTextContent } from "./ReactDOMHostConfig";
+import { shouldSetTextContent } from "../../react-dom/src/ReactDOMHostConfig";
 import {
   cloneUpdateQueue,
   processUpdateQueue,

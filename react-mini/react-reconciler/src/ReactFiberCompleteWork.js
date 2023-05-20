@@ -1,9 +1,12 @@
-import { createInstance } from "./ReactDOMHostConfig";
+import {
+  appendInitialChild,
+  createInstance,
+  finalizeInitialChildren,
+} from "../../react-dom/src/ReactDOMHostConfig";
 import { getHostContext, getRootHostContainer } from "./ReactFiberHostContext";
-import { HostComponent } from "./ReactWorkTags";
+import { HostComponent, HostPortal, HostText } from "./ReactWorkTags";
 
 export function completeWork(current, workInProgress, renderLanes) {
-  debugger;
   const newProps = workInProgress.pendingProps;
   switch (workInProgress.tag) {
     case HostComponent:
@@ -25,7 +28,24 @@ export function completeWork(current, workInProgress, renderLanes) {
         );
         appendAllChildren(instance, workInProgress, false, false);
         workInProgress.stateNode = instance;
+        if (
+          finalizeInitialChildren(
+            instance,
+            type,
+            newProps,
+            rootContainerInstance,
+            currentHostContext
+          )
+        ) {
+          markUpdate(workInProgress);
+        }
+        if (workInProgress.ref !== null) {
+          // todo
+          // markRef(workInProgress);
+        }
       }
+      bubbleProperties(workInProgress);
+      return null;
   }
 }
 
@@ -34,4 +54,28 @@ function appendAllChildren(
   workInProgress,
   needsVisibilityToggle,
   isHidden
-) {}
+) {
+  let node = workInProgress.child;
+  while (node !== null) {
+    if (node.tag === HostComponent || node.tag === HostText) {
+      appendInitialChild(parent, node.stateNode);
+    } else if (node.tag === HostPortal) {
+      // todo
+    } else if (node.child !== null) {
+      node.child.return = node;
+      node = node.child;
+      continue;
+    }
+    if (node === workInProgress) {
+      return;
+    }
+    while (node.sibling === null) {
+      if (node.return === null || node.return === workInProgress) {
+        return;
+      }
+      node = node.return;
+    }
+    node.sibling.return = node.return;
+    node = node.sibling;
+  }
+}

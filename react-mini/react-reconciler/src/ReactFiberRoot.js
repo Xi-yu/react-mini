@@ -1,6 +1,6 @@
+import { noTimeout } from "../../react-dom/src/ReactDOMHostConfig";
 import { createHostRootFiber } from "./ReactFiber";
 import { initializeUpdateQueue } from "./ReactFiberClassUpdateQueue";
-import { noTimeout } from "./ReactDOMHostConfig";
 import { NoLane, NoLanes, NoTimestamp, createLaneMap } from "./ReactFiberLane";
 
 export function createFiberRoot(

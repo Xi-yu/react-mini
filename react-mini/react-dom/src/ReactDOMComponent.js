@@ -6,17 +6,16 @@ export function createElement(
   rootContainerElement,
   parentNamespace
 ) {
-  let isCustomComponentTag;
+  // let isCustomComponentTag;
   const ownerDocument = getOwnerDocumentFromRootContainer(rootContainerElement);
-  let domElement;
-  let namespaceURI = parentNamespace;
-  if (namespaceURI === HTML_NAMESPACE) {
-    namespaceURI = getIntrinsicNamespace(type);
-  }
-  domElement = ownerDocument.createElement(type);
+  // let namespaceURI = parentNamespace;
+  // if (namespaceURI === HTML_NAMESPACE) {
+  //   namespaceURI = getIntrinsicNamespace(type);
+  // }
+  const domElement = ownerDocument.createElement(type);
   return domElement;
 }
 
 function getOwnerDocumentFromRootContainer(rootContainerElement) {
-  return rootContainerElement;
+  return rootContainerElement.ownerDocument;
 }
